@@ -12,7 +12,6 @@ htmlcov/
 # Virtual environments
 .venv
 .venv-*/
-*.lock
 
 # Environment variables
 .env
