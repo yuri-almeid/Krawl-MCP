@@ -21,20 +21,21 @@ Architecture Notes:
 import asyncio
 import logging
 import os
-from typing import List, Dict, Any, Optional
-from urllib.parse import urlparse
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 # Load .env file if it exists
 from dotenv import load_dotenv
+
 env_path = Path(__file__).parent / ".env"
 load_dotenv(env_path)
 
+import httpx
 import trafilatura
 from duckduckgo_search import DDGS
-from playwright.async_api import async_playwright, Page
 from fastmcp import FastMCP
-import httpx
+from playwright.async_api import Page, async_playwright
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +61,7 @@ def get_config() -> Dict[str, Any]:
         "browser_timeout": int(os.getenv("BROWSER_TIMEOUT", "60000")),
         "user_agent": os.getenv(
             "USER_AGENT",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         ),
     }
 
@@ -164,8 +165,7 @@ async def scrape_with_playwright(url: str) -> str:
         try:
             # Create new page with viewport
             page: Page = await browser.new_page(
-                viewport={"width": 1280, "height": 800},
-                user_agent=USER_AGENT
+                viewport={"width": 1280, "height": 800}, user_agent=USER_AGENT
             )
 
             # Set timeout for page operations
@@ -231,7 +231,9 @@ async def search_web(query: str) -> str:
         - URL
         - Snippet
     """
-    logger.info(f"Search request - Query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    logger.info(
+        f"Search request - Query: {query[:50]}{'...' if len(query) > 50 else ''}"
+    )
 
     if not query or not query.strip():
         return "Error: Search query cannot be empty"
@@ -287,8 +289,10 @@ async def scrape_webpage(url: str) -> str:
 
     if not validate_url(url):
         logger.warning(f"Scrape failed - Invalid URL: {url}")
-        return (f"Error: Invalid URL format. URLs must start with http:// or https:// "
-                f"and include a domain (e.g., https://example.com). Received: '{url}'")
+        return (
+            f"Error: Invalid URL format. URLs must start with http:// or https:// "
+            f"and include a domain (e.g., https://example.com). Received: '{url}'"
+        )
 
     try:
         # Scrape HTML using Playwright
@@ -299,9 +303,11 @@ async def scrape_webpage(url: str) -> str:
 
         if not markdown:
             logger.warning(f"Scrape failed - No content extracted from: {url}")
-            return (f"Warning: No content could be extracted from '{url}'. "
-                    "The page might be empty, require JavaScript authentication, "
-                    "use content protection mechanisms, or block automated access.")
+            return (
+                f"Warning: No content could be extracted from '{url}'. "
+                "The page might be empty, require JavaScript authentication, "
+                "use content protection mechanisms, or block automated access."
+            )
 
         # Token optimization: Remove excessive whitespace
         lines = markdown.split("\n")
@@ -329,9 +335,11 @@ async def scrape_webpage(url: str) -> str:
 
         if "timeout" in error_msg:
             logger.warning(f"Scrape failed - Timeout for: {url}")
-            return (f"Error: Page load timeout for '{url}'. The page may be too slow, "
-                    f"blocked, or require additional time. Try increasing SCRAPER_TIMEOUT "
-                    f"(current: {SCRAPER_TIMEOUT}ms).")
+            return (
+                f"Error: Page load timeout for '{url}'. The page may be too slow, "
+                f"blocked, or require additional time. Try increasing SCRAPER_TIMEOUT "
+                f"(current: {SCRAPER_TIMEOUT}ms)."
+            )
         elif "navigation" in error_msg or "net::" in error_msg:
             logger.warning(f"Scrape failed - Navigation error for: {url}")
             return f"Error: Failed to navigate to '{url}'. The URL may be invalid, blocked, or the site is down."
@@ -352,7 +360,7 @@ def check_connection() -> Dict[str, Any]:
         "status": "healthy",
         "mode": "remote",
         "auth_enabled": auth_enabled,
-        "tools": ["search_web", "scrape_webpage"]
+        "tools": ["search_web", "scrape_webpage"],
     }
 
 
@@ -368,8 +376,8 @@ def create_remote_app(auth_enabled: bool = False):
     """
     from starlette.middleware import Middleware
     from starlette.middleware.base import BaseHTTPMiddleware
-    from starlette.routing import Route
     from starlette.responses import JSONResponse
+    from starlette.routing import Route
 
     class AuthMiddleware(BaseHTTPMiddleware):
         """Simple Bearer token authentication middleware."""
@@ -381,12 +389,19 @@ def create_remote_app(auth_enabled: bool = False):
 
             # Check Authorization header
             auth_header = request.headers.get("Authorization", "")
-            token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else ""
+            token = (
+                auth_header.replace("Bearer ", "")
+                if auth_header.startswith("Bearer ")
+                else ""
+            )
 
             if not validate_auth_token(token):
                 return JSONResponse(
                     status_code=401,
-                    content={"error": "Unauthorized", "message": "Invalid or missing authentication token"}
+                    content={
+                        "error": "Unauthorized",
+                        "message": "Invalid or missing authentication token",
+                    },
                 )
 
             return await call_next(request)
@@ -405,34 +420,36 @@ def create_remote_app(auth_enabled: bool = False):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Krawl MCP Server - Web Search and Scraping")
+    parser = argparse.ArgumentParser(
+        description="Krawl MCP Server - Web Search and Scraping"
+    )
     parser.add_argument(
         "--mode",
         choices=["local", "remote"],
         default=os.getenv("MODE", "local"),
-        help="Server mode: local (stdio) or remote (SSE HTTP) (default: from .env or 'local')"
+        help="Server mode: local (stdio) or remote (SSE HTTP) (default: from .env or 'local')",
     )
     parser.add_argument(
         "--host",
         default="0.0.0.0",
-        help="Host address for remote mode (default: 0.0.0.0)"
+        help="Host address for remote mode (default: 0.0.0.0)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=int(os.getenv("PORT", "8000")),
-        help="Port for remote mode (default: from .env or 8000)"
+        help="Port for remote mode (default: from .env or 8000)",
     )
     parser.add_argument(
         "--token",
         default=None,
-        help="Authentication token for remote mode (overrides MCP_AUTH_TOKEN env var)"
+        help="Authentication token for remote mode (overrides MCP_AUTH_TOKEN env var)",
     )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default=os.getenv("LOG_LEVEL", "INFO"),
-        help="Logging level (default: from .env or INFO)"
+        help="Logging level (default: from .env or INFO)",
     )
 
     args = parser.parse_args()
@@ -454,15 +471,22 @@ if __name__ == "__main__":
         mcp.run()
 
     else:  # remote mode
-        logger.info(f"Running in remote mode (SSE transport on {args.host}:{args.port})")
+        logger.info(
+            f"Running in remote mode (SSE transport on {args.host}:{args.port})"
+        )
         if auth_enabled:
-            logger.info(f"Authentication enabled (use token in MCP client or Authorization header)")
+            logger.info(
+                f"Authentication enabled (use token in MCP client or Authorization header)"
+            )
         else:
-            logger.warning("WARNING: Running without authentication - anyone can access this server!")
+            logger.warning(
+                "WARNING: Running without authentication - anyone can access this server!"
+            )
 
         # Create SSE app with optional authentication
         app = create_remote_app(auth_enabled=auth_enabled)
 
         # Run the app
         import uvicorn
+
         uvicorn.run(app, host=args.host, port=args.port)

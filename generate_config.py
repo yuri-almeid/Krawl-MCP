@@ -43,7 +43,7 @@ def generate_local_config() -> dict:
 
     return {
         "mcpServers": {
-            "web-mcp": {
+            "krawl-mcp": {
                 "command": str(python_path),
                 "args": [str(server_path), "--mode", "local"],
                 "env": {}
@@ -56,7 +56,7 @@ def generate_remote_config(host: str = "localhost", port: int = 8000, token: str
     """Generate remote mode configuration."""
     config = {
         "mcpServers": {
-            "web-mcp": {
+            "krawl-mcp": {
                 "url": f"http://{host}:{port}/sse",
                 "transport": "sse",
                 "env": {}
@@ -65,7 +65,7 @@ def generate_remote_config(host: str = "localhost", port: int = 8000, token: str
     }
 
     if token:
-        config["mcpServers"]["web-mcp"]["headers"] = {
+        config["mcpServers"]["krawl-mcp"]["headers"] = {
             "Authorization": f"Bearer {token}"
         }
 
@@ -74,7 +74,7 @@ def generate_remote_config(host: str = "localhost", port: int = 8000, token: str
 
 def main():
     """Generate and print the MCP configuration."""
-    parser = argparse.ArgumentParser(description="Generate MCP configuration for Web MCP Server")
+    parser = argparse.ArgumentParser(description="Generate MCP configuration for Krawl MCP Server")
     parser.add_argument(
         "--mode",
         choices=["local", "remote"],

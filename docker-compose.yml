@@ -1,7 +1,7 @@
 services:
-  web-mcp:
+  krawl-mcp:
     build: .
-    container_name: web-mcp-server
+    container_name: krawl-mcp-server
     restart: unless-stopped
 
     # Server mode configuration

@@ -1,4 +1,4 @@
-# Web MCP Server - Dockerfile
+# Krawl MCP Server - Dockerfile
 FROM python:3.12-slim
 
 # Set working directory
@@ -62,10 +62,10 @@ COPY server.py ./
 COPY generate_config.py ./
 
 # Create non-root user for security
-RUN useradd -m -u 1000 webmcp && \
-    chown -R webmcp:webmcp /app
+RUN useradd -m -u 1000 krawlmcp && \
+    chown -R krawlmcp:krawlmcp /app
 
-USER webmcp
+USER krawlmcp
 
 # Expose port for remote mode
 EXPOSE 8000
