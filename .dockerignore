@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.py[oc]
+.pytest_cache
+.coverage
+htmlcov
+
+# Virtual environments
+.venv
+.venv-*/
+
+# Tests
+tests/
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.example
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Cache directories
+.claude

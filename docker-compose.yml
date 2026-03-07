@@ -1,0 +1,58 @@
+services:
+  web-mcp:
+    build: .
+    container_name: web-mcp-server
+    restart: unless-stopped
+
+    # Server mode configuration
+    # Options: "local" (stdio) or "remote" (SSE HTTP)
+    environment:
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:-}  # Optional: Set a token for remote mode authentication
+
+    # Port mapping for remote mode
+    ports:
+      - "${PORT:-8000}:8000"
+
+    # Command overrides dockerfile default
+    # Remote mode (default for Docker):
+    command: ["/app/.venv/bin/python", "server.py", "--mode", "remote", "--host", "0.0.0.0", "--port", "8000", "--log-level", "INFO"]
+
+    # With authentication (set MCP_AUTH_TOKEN in .env file):
+    # command: ["/app/.venv/bin/python", "server.py", "--mode", "remote", "--host", "0.0.0.0", "--port", "8000", "--token", "${MCP_AUTH_TOKEN}", "--log-level", "INFO"]
+
+    # Local mode (stdio) - doesn't work well with Docker Compose:
+    # command: ["/app/.venv/bin/python", "server.py", "--mode", "local", "--log-level", "INFO"]
+
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "512M"
+
+    # Health check for remote mode
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Volumes for development (optional)
+    # volumes:
+    #   - ./server.py:/app/server.py:ro
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Optional: .env.example file for configuration
+# Create a .env file with:
+# MCP_AUTH_TOKEN=your-secret-token-here
+# PORT=8000
