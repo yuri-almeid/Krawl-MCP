@@ -31,7 +31,6 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent / ".env"
 load_dotenv(env_path)
 
-import httpx
 import trafilatura
 from duckduckgo_search import DDGS
 from fastmcp import FastMCP
@@ -377,7 +376,6 @@ def create_remote_app(auth_enabled: bool = False):
     from starlette.middleware import Middleware
     from starlette.middleware.base import BaseHTTPMiddleware
     from starlette.responses import JSONResponse
-    from starlette.routing import Route
 
     class AuthMiddleware(BaseHTTPMiddleware):
         """Simple Bearer token authentication middleware."""
@@ -476,7 +474,7 @@ if __name__ == "__main__":
         )
         if auth_enabled:
             logger.info(
-                f"Authentication enabled (use token in MCP client or Authorization header)"
+                "Authentication enabled (use token in MCP client or Authorization header)"
             )
         else:
             logger.warning(

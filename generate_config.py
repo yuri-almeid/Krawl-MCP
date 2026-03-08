@@ -6,9 +6,9 @@ Supports both local and remote modes.
 Run this script to get the exact configuration for your system.
 """
 
+import argparse
 import sys
 from pathlib import Path
-import argparse
 
 
 def get_project_root() -> Path:
@@ -46,20 +46,22 @@ def generate_local_config() -> dict:
             "krawl-mcp": {
                 "command": str(python_path),
                 "args": [str(server_path), "--mode", "local"],
-                "env": {}
+                "env": {},
             }
         }
     }
 
 
-def generate_remote_config(host: str = "localhost", port: int = 8000, token: str = None) -> dict:
+def generate_remote_config(
+    host: str = "localhost", port: int = 8000, token: str = None
+) -> dict:
     """Generate remote mode configuration."""
     config = {
         "mcpServers": {
             "krawl-mcp": {
                 "url": f"http://{host}:{port}/mcp",
                 "transport": "streamable-http",
-                "env": {}
+                "env": {},
             }
         }
     }
@@ -74,28 +76,23 @@ def generate_remote_config(host: str = "localhost", port: int = 8000, token: str
 
 def main():
     """Generate and print the MCP configuration."""
-    parser = argparse.ArgumentParser(description="Generate MCP configuration for Krawl MCP Server")
+    parser = argparse.ArgumentParser(
+        description="Generate MCP configuration for Krawl MCP Server"
+    )
     parser.add_argument(
         "--mode",
         choices=["local", "remote"],
         default="local",
-        help="Configuration mode: local or remote"
+        help="Configuration mode: local or remote",
     )
     parser.add_argument(
-        "--host",
-        default="localhost",
-        help="Remote server host (for remote mode)"
+        "--host", default="localhost", help="Remote server host (for remote mode)"
     )
     parser.add_argument(
-        "--port",
-        type=int,
-        default=8000,
-        help="Remote server port (for remote mode)"
+        "--port", type=int, default=8000, help="Remote server port (for remote mode)"
     )
     parser.add_argument(
-        "--token",
-        default=None,
-        help="Authentication token (for remote mode)"
+        "--token", default=None, help="Authentication token (for remote mode)"
     )
 
     args = parser.parse_args()
@@ -109,7 +106,9 @@ def main():
         print("LOCAL MODE CONFIGURATION")
         print("=" * 70)
         print("\nCopy the above JSON to your MCP client configuration file:")
-        print("  - Claude Desktop: ~/Library/Application Support/Claude/claude_desktop_config.json")
+        print(
+            "  - Claude Desktop: ~/Library/Application Support/Claude/claude_desktop_config.json"
+        )
         print("  - Continue.dev: ~/.continue/config.json")
         print("=" * 70)
     else:
@@ -124,7 +123,9 @@ def main():
             print("⚠ WARNING: No authentication token configured!")
             print("  This is not secure for production use!")
         print("\nCopy the above JSON to your MCP client configuration file:")
-        print("  - Claude Desktop: ~/Library/Application Support/Claude/claude_desktop_config.json")
+        print(
+            "  - Claude Desktop: ~/Library/Application Support/Claude/claude_desktop_config.json"
+        )
         print("  - Continue.dev: ~/.continue/config.json")
         print("=" * 70)
 
