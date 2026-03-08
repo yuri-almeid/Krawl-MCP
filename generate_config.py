@@ -57,8 +57,8 @@ def generate_remote_config(host: str = "localhost", port: int = 8000, token: str
     config = {
         "mcpServers": {
             "krawl-mcp": {
-                "url": f"http://{host}:{port}/sse",
-                "transport": "sse",
+                "url": f"http://{host}:{port}/mcp",
+                "transport": "streamable-http",
                 "env": {}
             }
         }
@@ -116,7 +116,7 @@ def main():
         config = generate_remote_config(args.host, args.port, args.token)
         print(json.dumps(config, indent=2))
         print("\n" + "=" * 70)
-        print(f"REMOTE MODE CONFIGURATION (http://{args.host}:{args.port}/sse)")
+        print(f"REMOTE MODE CONFIGURATION (http://{args.host}:{args.port}/mcp)")
         print("=" * 70)
         if args.token:
             print(f"✓ Authentication enabled with token: {args.token[:10]}...")

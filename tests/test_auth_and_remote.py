@@ -189,10 +189,10 @@ class TestTransportModes:
         default_transport = "stdio"
         assert default_transport == "stdio"
 
-    def test_sse_transport_available(self):
-        """Test SSE is available for remote mode."""
-        sse_transport = "sse"
-        assert sse_transport == "sse"
+    def test_streamable_http_transport_available(self):
+        """Test Streamable HTTP is available for remote mode."""
+        transport = "streamable-http"
+        assert transport == "streamable-http"
 
     def test_valid_transport_options(self):
         """Test valid transport options."""

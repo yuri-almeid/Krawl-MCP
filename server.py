@@ -7,7 +7,7 @@ This server provides two tools:
 
 Modes:
 - Local (stdio): Default mode for local execution
-- Remote (SSE): HTTP-based mode with optional token authentication
+- Remote (Streamable HTTP): HTTP-based mode with optional token authentication
 
 Architecture Notes:
 - All tools are async to prevent blocking the MCP server
@@ -102,7 +102,7 @@ def validate_auth_token(token: Optional[str]) -> bool:
 mcp = FastMCP(
     "krawl-mcp",
     lifespan=None,
-    # Add authentication middleware for SSE mode
+    # Add authentication middleware for remote mode
 )
 
 
@@ -366,13 +366,13 @@ def check_connection() -> Dict[str, Any]:
 
 def create_remote_app(auth_enabled: bool = False):
     """
-    Create SSE app for remote mode.
+    Create Streamable HTTP app for remote mode.
 
     Args:
         auth_enabled: Whether to enable Bearer token authentication
 
     Returns:
-        Starlette app configured for SSE transport with optional auth middleware
+        Starlette app configured for Streamable HTTP transport with optional auth middleware
     """
     from starlette.middleware import Middleware
     from starlette.middleware.base import BaseHTTPMiddleware
@@ -409,9 +409,9 @@ def create_remote_app(auth_enabled: bool = False):
     async def health_check(request):
         return JSONResponse(check_connection())
 
-    # Create SSE app with optional middleware
+    # Create app with optional middleware
     middleware = [Middleware(AuthMiddleware)] if auth_enabled else []
-    app = mcp.http_app(transport="sse", middleware=middleware)
+    app = mcp.http_app(transport="streamable-http", middleware=middleware)
     # Add health check route
     app.add_route("/health", health_check)
     return app
@@ -427,7 +427,7 @@ if __name__ == "__main__":
         "--mode",
         choices=["local", "remote"],
         default=os.getenv("MODE", "local"),
-        help="Server mode: local (stdio) or remote (SSE HTTP) (default: from .env or 'local')",
+        help="Server mode: local (stdio) or remote (Streamable HTTP) (default: from .env or 'local')",
     )
     parser.add_argument(
         "--host",
@@ -472,7 +472,7 @@ if __name__ == "__main__":
 
     else:  # remote mode
         logger.info(
-            f"Running in remote mode (SSE transport on {args.host}:{args.port})"
+            f"Running in remote mode (Streamable HTTP transport on {args.host}:{args.port})"
         )
         if auth_enabled:
             logger.info(
@@ -483,7 +483,7 @@ if __name__ == "__main__":
                 "WARNING: Running without authentication - anyone can access this server!"
             )
 
-        # Create SSE app with optional authentication
+        # Create remote app with optional authentication
         app = create_remote_app(auth_enabled=auth_enabled)
 
         # Run the app

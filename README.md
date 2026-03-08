@@ -1,12 +1,12 @@
 # Krawl MCP Server
 
-A self-hosted MCP server providing Web Search and Web Scraping capabilities using only free, open-source tools. Supports both local (stdio) and remote (SSE HTTP) execution modes with optional authentication.
+A self-hosted MCP server providing Web Search and Web Scraping capabilities using only free, open-source tools. Supports both local (stdio) and remote (Streamable HTTP) execution modes with optional authentication.
 
 ## Features
 
 - **Web Search**: Search using DuckDuckGo (no API key required)
 - **Web Scraping**: Scrape webpages with JavaScript rendering support
-- **Dual Mode**: Local (stdio) or Remote (SSE HTTP) execution
+- **Dual Mode**: Local (stdio) or Remote (Streamable HTTP) execution
 - **Authentication**: Optional Bearer token authentication for remote mode
 - **Self-hosted**: No paid external APIs
 - **Token Optimized**: Returns clean Markdown content, not raw HTML
@@ -19,7 +19,7 @@ A self-hosted MCP server providing Web Search and Web Scraping capabilities usin
 - **playwright**: Headless browser with JavaScript support
 - **trafilatura**: Content extraction and Markdown conversion
 - **uv**: Fast Python package manager
-- **SSE**: Server-Sent Events for HTTP-based communication
+- **Streamable HTTP**: Modern bidirectional transport for remote communication
 
 ## Project Setup
 
@@ -87,7 +87,7 @@ python server.py
 python server.py --mode local
 ```
 
-### Remote Mode (SSE HTTP)
+### Remote Mode (Streamable HTTP)
 
 Run as an HTTP server accessible over the network:
 
@@ -190,7 +190,7 @@ Add to your MCP client configuration:
 
 ### Remote Mode with mcp-remote (Recommended)
 
-If you have `mcp-remote` installed, you can connect to the remote SSE server:
+If you have `mcp-remote` installed, you can connect to the remote Streamable HTTP server:
 
 ```json
 {
@@ -200,7 +200,7 @@ If you have `mcp-remote` installed, you can connect to the remote SSE server:
       "args": [
         "-y",
         "mcp-remote",
-        "http://localhost:8000/sse",
+        "http://localhost:8000/mcp",
         "--header",
         "Authorization:Bearer YOUR_TOKEN",
         "--name",
@@ -226,8 +226,8 @@ uv run python server.py --mode remote
 {
   "mcpServers": {
     "krawl-mcp": {
-      "url": "http://your-server:8000/sse",
-      "transport": "sse",
+      "url": "http://your-server:8000/mcp",
+      "transport": "streamable-http",
       "env": {}
     }
   }
@@ -240,8 +240,8 @@ uv run python server.py --mode remote
 {
   "mcpServers": {
     "krawl-mcp": {
-      "url": "http://your-server:8000/sse",
-      "transport": "sse",
+      "url": "http://your-server:8000/mcp",
+      "transport": "streamable-http",
       "headers": {
         "Authorization": "Bearer your-secret-token"
       },
@@ -276,7 +276,7 @@ Replace `your-secret-token` with your actual authentication token.
       "args": [
         "-y",
         "mcp-remote",
-        "http://localhost:8000/sse",
+        "http://localhost:8000/mcp",
         "--header",
         "Authorization:Bearer YOUR_TOKEN",
         "--name",
@@ -290,13 +290,46 @@ Replace `your-secret-token` with your actual authentication token.
 }
 ```
 
-**Direct SSE mode (with authentication):**
+**Remote server (non-localhost) with mcp-remote:**
+
+When connecting to a remote server (not localhost), you must add the `--allow-http` flag since Claude Desktop requires HTTPS for non-localhost URLs:
+
 ```json
 {
   "mcpServers": {
     "krawl-mcp": {
-      "url": "http://localhost:8000/sse",
-      "transport": "sse",
+      "command": "/opt/homebrew/bin/npx",
+      "args": [
+        "mcp-remote",
+        "http://100.86.193.50:6656/mcp",
+        "--name",
+        "krawl-mcp",
+        "--header",
+        "Authorization: Bearer ${AUTH_TOKEN}",
+        "--allow-http"
+      ],
+      "env": {
+        "AUTH_TOKEN": "your-secret-token-here",
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
+```
+
+**Important notes:**
+- Replace `http://100.86.193.50:6656/mcp` with your server URL
+- Replace `your-secret-token-here` with your actual `MCP_AUTH_TOKEN`
+- The `--allow-http` flag is required for non-localhost HTTP URLs
+- For production, use HTTPS and remove the `--allow-http` flag
+
+**Direct Streamable HTTP mode (with authentication):**
+```json
+{
+  "mcpServers": {
+    "krawl-mcp": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http",
       "headers": {
         "Authorization": "Bearer your-secret-token"
       }
@@ -347,8 +380,8 @@ The server supports two transport modes:
 - Lower latency
 - No network setup required
 
-#### Remote Mode (SSE HTTP)
-- Communication via HTTP with Server-Sent Events
+#### Remote Mode (Streamable HTTP)
+- Communication via modern bidirectional HTTP transport
 - Allows remote access to the server
 - Supports multiple clients
 - Requires network configuration
@@ -596,7 +629,7 @@ Krawl MCP Server - Web Search and Scraping
 
 options:
   -h, --help            show this help message and exit
-  --mode {local,remote}  Server mode: local (stdio) or remote (SSE HTTP)
+  --mode {local,remote}  Server mode: local (stdio) or remote (Streamable HTTP)
   --host HOST            Host address for remote mode (default: 0.0.0.0)
   --port PORT            Port for remote mode (default: 8000)
   --token TOKEN          Authentication token for remote mode (can also use MCP_AUTH_TOKEN env var)
