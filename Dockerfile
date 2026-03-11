@@ -54,8 +54,12 @@ COPY pyproject.toml uv.lock ./
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev
 
+# Environment variables for Playwright (must be BEFORE install)
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.ms-playwright
+
 # Install Playwright browsers
-RUN /app/.venv/bin/playwright install chromium
+RUN /app/.venv/bin/playwright install chromium && \
+    /app/.venv/bin/playwright install chromium-headless-shell
 
 # Copy the application code
 COPY server.py ./

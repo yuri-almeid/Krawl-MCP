@@ -27,6 +27,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# CLAUDE
 .claude
+.mcp.json
 
 .config.sample.json
